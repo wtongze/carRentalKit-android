@@ -1,4 +1,4 @@
-package com.wtongze.carrentalkit.screens
+package com.wtongze.carrentalkit.screen
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
