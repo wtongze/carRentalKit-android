@@ -12,7 +12,7 @@ fun HomeScreen(onClick: () -> Unit) {
     }
 }
 
-@Preview
+@Preview()
 @Composable
 fun HomeScreenPreview() {
     HomeScreen(onClick = {})

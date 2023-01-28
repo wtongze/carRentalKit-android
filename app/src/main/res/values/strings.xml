@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">CarRentalKit</string>
     <string name="quote_screen">Quotes</string>
+    <string name="back_button">Back</string>
 </resources>
