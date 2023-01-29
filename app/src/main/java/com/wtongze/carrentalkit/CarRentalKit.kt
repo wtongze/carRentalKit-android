@@ -98,7 +98,7 @@ fun CarRentalKit(
                 })
             }
             composable(route = CarRentalKitScreen.Quote.name) {
-                QuoteScreen()
+                QuoteScreen(quoteViewModel = quoteViewModel)
             }
         }
     }
