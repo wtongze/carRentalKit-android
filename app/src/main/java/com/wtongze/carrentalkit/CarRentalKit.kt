@@ -8,17 +8,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
+import com.wtongze.carrentalkit.data.QuoteViewModel
 import com.wtongze.carrentalkit.screen.HomeScreen
 import com.wtongze.carrentalkit.screen.QuoteScreen
 import com.wtongze.carrentalkit.screen.SelectLocationScreen
@@ -30,7 +35,10 @@ enum class CarRentalKitScreen(@StringRes val title: Int) {
 }
 
 @Composable
-fun CarRentalKit(navController: NavHostController = rememberNavController()) {
+fun CarRentalKit(
+    navController: NavHostController = rememberNavController(),
+    quoteViewModel: QuoteViewModel = viewModel()
+) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = CarRentalKitScreen.valueOf(
         backStackEntry?.destination?.route ?: CarRentalKitScreen.Home.name
@@ -64,6 +72,7 @@ fun CarRentalKit(navController: NavHostController = rememberNavController()) {
         }
 
     }) { innerPadding ->
+
         NavHost(
             navController = navController,
             startDestination = CarRentalKitScreen.Home.name,
@@ -72,12 +81,19 @@ fun CarRentalKit(navController: NavHostController = rememberNavController()) {
                 .padding(innerPadding)
         ) {
             composable(route = CarRentalKitScreen.Home.name) {
-                HomeScreen(onSelectLocation = {
-                    navController.navigate(CarRentalKitScreen.SelectLocation.name)
-                })
+                HomeScreen(
+                    quoteViewModel = quoteViewModel,
+                    onSelectLocation = {
+                        navController.navigate(CarRentalKitScreen.SelectLocation.name)
+                    },
+                    onSearchQuote = {
+                        navController.navigate(CarRentalKitScreen.Quote.name)
+                    }
+                )
             }
             composable(route = CarRentalKitScreen.SelectLocation.name) {
                 SelectLocationScreen(onSubmitLocation = {
+                    quoteViewModel.setLocation(it)
                     navController.popBackStack()
                 })
             }

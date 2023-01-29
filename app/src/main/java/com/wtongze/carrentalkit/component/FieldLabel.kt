@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun FieldLabel(text: String) {
+fun FieldLabel(modifier: Modifier = Modifier, text: String) {
     Text(
         text = text,
-        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+        modifier = modifier,
         fontSize = 18.sp,
         fontWeight = FontWeight.SemiBold
     )
