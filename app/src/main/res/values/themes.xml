@@ -3,5 +3,6 @@
 
     <style name="Theme.CarRentalKit" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@color/purple_700</item>
+        <item name="android:colorAccent">@color/purple_500</item>
     </style>
 </resources>

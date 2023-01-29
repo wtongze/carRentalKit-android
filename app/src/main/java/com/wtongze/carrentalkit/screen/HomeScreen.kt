@@ -77,7 +77,10 @@ fun HomeScreen(
             Row {
                 DatePickerTextButton(
                     date = quoteState.pickUpDate,
-                    onSetDate = { quoteViewModel.setPickUpDate(it) },
+                    onSetDate = {
+                        quoteViewModel.setPickUpDate(it)
+                        quoteViewModel.setDropOffDate(it.plusDays(1))
+                    },
                 )
                 Divider(
                     modifier = Modifier
@@ -86,7 +89,10 @@ fun HomeScreen(
                 )
                 TimePickerTextButton(
                     time = quoteState.pickUpTime,
-                    onSetTime = { quoteViewModel.setPickUpTime(it) },
+                    onSetTime = {
+                        quoteViewModel.setPickUpTime(it)
+                        quoteViewModel.setDropOffTime(it)
+                    },
                 )
             }
 
@@ -115,7 +121,11 @@ fun HomeScreen(
 
         }
 
-        Button(onClick = onSearchQuote, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+        Button(
+            onClick = onSearchQuote, modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        ) {
             Text(text = "Search", fontSize = 18.sp)
         }
     }

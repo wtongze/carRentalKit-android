@@ -98,7 +98,9 @@ fun CarRentalKit(
                 })
             }
             composable(route = CarRentalKitScreen.Quote.name) {
-                QuoteScreen(quoteViewModel = quoteViewModel)
+                QuoteScreen(quoteViewModel = quoteViewModel, onNetworkError = {
+                    navController.popBackStack()
+                })
             }
         }
     }

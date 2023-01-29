@@ -1,14 +1,12 @@
 package com.wtongze.carrentalkit.screen
 
+import android.app.AlertDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.*
@@ -16,10 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role.Companion.Button
 import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.wtongze.carrentalkit.R
 import com.wtongze.carrentalkit.data.QuoteViewModel
+import com.wtongze.carrentalkit.model.CarType
 import com.wtongze.carrentalkit.model.Location
 import com.wtongze.carrentalkit.model.QuoteResult
 import com.wtongze.carrentalkit.network.QuoteServiceContainer
@@ -34,43 +36,44 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 @Composable
-fun QuoteScreen(quoteViewModel: QuoteViewModel = viewModel()) {
+fun QuoteScreen(
+    quoteViewModel: QuoteViewModel = viewModel(),
+    onNetworkError: () -> Unit = {},
+    quotes: List<QuoteResult> = emptyList(),
+    loadingStatus: Boolean = true
+) {
     val quoteState by quoteViewModel.quoteState.collectAsState()
     val quoteResults = remember {
-        mutableStateOf(
-            listOf(
-                QuoteResult(
-                    pickupLocation = Location(
-                        name = "San Jose INTL AP",
-                        address = "123 Main Rd"
-                    ), carType = "ECONOMY", price = 25.93f, promoCodeApplied = true
-                ),
-                QuoteResult(
-                    pickupLocation = Location(
-                        name = "San Jose INTL AP",
-                        address = "123 Main Rd"
-                    ), carType = "ECONOMY", price = 25.93f, promoCodeApplied = true
-                )
-            )
-        )
+        mutableStateOf(quotes)
     }
 
     val isLoading = remember {
-        mutableStateOf(true)
+        mutableStateOf(loadingStatus)
     }
+
+    val dialog = AlertDialog.Builder(LocalContext.current)
+    dialog.setTitle("Error")
+    dialog.setMessage("Can't get quotes from server")
+    dialog.setCancelable(false)
+    dialog.setPositiveButton("OK") { _, _ -> onNetworkError() }
 
     LaunchedEffect(key1 = null) {
         launch {
-            val results = QuoteServiceContainer().quoteRepository.getQuotes(
-                quoteState.pickUpDate,
-                quoteState.pickUpTime,
-                quoteState.dropOffDate,
-                quoteState.dropOffTime,
-                quoteState.location,
-                quoteState.coupon
-            )
-            quoteResults.value = results
-            isLoading.value = false
+            try {
+                val results = QuoteServiceContainer().quoteRepository.getQuotes(
+                    quoteState.pickUpDate,
+                    quoteState.pickUpTime,
+                    quoteState.dropOffDate,
+                    quoteState.dropOffTime,
+                    quoteState.location,
+                    quoteState.coupon
+                )
+                quoteResults.value = results
+                isLoading.value = false
+            } catch (e: Exception) {
+                isLoading.value = false
+                dialog.show()
+            }
         }
     }
 
@@ -97,11 +100,12 @@ fun QuoteScreen(quoteViewModel: QuoteViewModel = viewModel()) {
     } else {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
             items(quoteResults.value) {
+                val carType = CarType.valueOf(it.carType)
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
-                            painter = painterResource(id = R.drawable.pfar),
-                            "PFAR",
+                            painter = painterResource(carType.res),
+                            carType.name,
                             modifier = Modifier
                                 .fillMaxWidth(0.4f)
                                 .fillMaxHeight(),
@@ -109,11 +113,20 @@ fun QuoteScreen(quoteViewModel: QuoteViewModel = viewModel()) {
                         )
                         Column(modifier = Modifier.padding(horizontal = 8.dp)) {
                             Text(
-                                text = it.carType,
-                                fontWeight = FontWeight.Medium,
+                                text = carType.name,
+                                fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp
                             )
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = carType.description,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                color = Color.DarkGray,
+                                fontStyle = FontStyle.Italic
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                            ) {
                                 Text(
                                     text = "$ " + it.price.toString(),
                                     fontWeight = FontWeight.Bold,
@@ -141,5 +154,27 @@ fun QuoteScreen(quoteViewModel: QuoteViewModel = viewModel()) {
 @Preview(showBackground = true)
 @Composable
 fun QuoteScreenPreview() {
-    QuoteScreen()
+    QuoteScreen(
+        quotes = listOf(
+            QuoteResult(
+                pickupLocation = Location(
+                    name = "San Jose INTL AP",
+                    address = "123 Main Rd"
+                ), carType = CarType.ECONOMY.name, price = 25.93f, promoCodeApplied = true
+            ),
+            QuoteResult(
+                pickupLocation = Location(
+                    name = "San Jose INTL AP",
+                    address = "123 Main Rd"
+                ), carType = CarType.LARGE_ELITE.name, price = 25.93f, promoCodeApplied = true
+            )
+        ),
+        loadingStatus = false
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun QuoteScreenLoadingPreview() {
+    QuoteScreen(loadingStatus = true)
 }
